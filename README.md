@@ -33,16 +33,16 @@ To train model on cpu:
 
 ## Samples
 
-Training after 50 iteration.
+Training after 30000 iteration.
 
-![generation_2016_08_01_16_40_28.jpg](./assets/generation_2016_08_01_16_40_28.jpg)
+![sample.png](./assets/sample.png)
 
 
 ## Training details
 
 cross entropy loss:
 
-![pixel_rnn](./assets/pixel_rnn.png)
+![curve.png](./assets/curve.png)
 
 
 ## Author
