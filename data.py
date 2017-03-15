@@ -12,7 +12,7 @@ class DataSet(object):
     for line in input_file:
       line = line.strip()
       self.record_list.append(line)
-    filename_queue = tf.train.string_input_producer(self.record_list)
+    filename_queue = tf.train.string_input_producer(self.record_list, num_epochs=num_epoch)
     image_reader = tf.WholeFileReader()
     _, image_file = image_reader.read(filename_queue)
     image = tf.image.decode_jpeg(image_file, 3)

@@ -42,7 +42,7 @@ class Solver(object):
       optimizer = tf.train.RMSPropOptimizer(learning_rate, decay=0.95, momentum=0.9, epsilon=1e-8)
       self.train_op = optimizer.minimize(self.net.loss, global_step=self.global_step)
   def train(self):
-    init_op = tf.global_variables_initializer()
+    init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     summary_op = tf.summary.merge_all()
     saver = tf.train.Saver()
     # Create a session for running operations in the Graph.
@@ -59,28 +59,30 @@ class Solver(object):
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
     iters = 0
     try:
-        while not coord.should_stop():
-            # Run training steps or whatever
-            t1 = time.time()
-            _, loss = sess.run([self.train_op, self.net.loss], feed_dict={self.net.train: True})
-            t2 = time.time()
-            print('step %d, loss = %.2f (%.1f examples/sec; %.3f sec/batch)' % ((iters, loss, self.batch_size/(t2-t1), (t2-t1))))
-            iters += 1
-            if iters % 10 == 0:
-              summary_str = sess.run(summary_op, feed_dict={self.net.train: True})
-              summary_writer.add_summary(summary_str, iters)
-            if iters % 1000 == 0:
-              #self.sample(sess, mu=1.0, step=iters)
-              self.sample(sess, mu=1.1, step=iters)
-              #self.sample(sess, mu=100, step=iters)
-            if iters % 10000 == 0:
-              checkpoint_path = os.path.join(self.train_dir, 'model.ckpt')
-              saver.save(sess, checkpoint_path, global_step=iters)
+      while not coord.should_stop():
+        # Run training steps or whatever
+        t1 = time.time()
+        _, loss = sess.run([self.train_op, self.net.loss], feed_dict={self.net.train: True})
+        t2 = time.time()
+        print('step %d, loss = %.2f (%.1f examples/sec; %.3f sec/batch)' % ((iters, loss, self.batch_size/(t2-t1), (t2-t1))))
+        iters += 1
+        if iters % 10 == 0:
+          summary_str = sess.run(summary_op, feed_dict={self.net.train: True})
+          summary_writer.add_summary(summary_str, iters)
+        if iters % 1000 == 0:
+          #self.sample(sess, mu=1.0, step=iters)
+          self.sample(sess, mu=1.1, step=iters)
+          #self.sample(sess, mu=100, step=iters)
+        if iters % 10000 == 0:
+          checkpoint_path = os.path.join(self.train_dir, 'model.ckpt')
+          saver.save(sess, checkpoint_path, global_step=iters)
     except tf.errors.OutOfRangeError:
-        print('Done training -- epoch limit reached')
+      checkpoint_path = os.path.join(self.train_dir, 'model.ckpt')
+      saver.save(sess, checkpoint_path)
+      print('Done training -- epoch limit reached')
     finally:
-        # When done, ask the threads to stop.
-        coord.request_stop()
+      # When done, ask the threads to stop.
+      coord.request_stop()
 
     # Wait for threads to finish.
     coord.join(threads)
