@@ -1,4 +1,6 @@
 import tensorflow as tf
+import sys
+sys.path.insert(0, './')
 from solver import *
 
 flags = tf.app.flags
